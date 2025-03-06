@@ -1,15 +1,12 @@
 import streamlit as st
-from ConversationManager import ConversationManager  # Ensure this file is present
+from ConversationManager import ConversationManager
 
-# Step 2: Title
 st.title("AI Chatbot")
 
-# Step 3: Initialize Session State
 if 'chat_manager' not in st.session_state:
     st.session_state['chat_manager'] = ConversationManager()
 chat_manager = st.session_state['chat_manager']
 
-# Step 4: Sidebar Widgets
 st.sidebar.header("Chatbot Settings")
 temp = st.sidebar.slider("Temperature", 0.0, 1.0, 0.7, 0.1)
 max_tokens = st.sidebar.slider("Max Tokens Per Message", 50, 500, 150, 10)
@@ -23,7 +20,6 @@ if persona == "Custom":
 else:
     chat_manager.set_persona(persona)
 
-# Step 5: Chat Input and Processing
 if 'conversation_history' not in st.session_state:
     st.session_state['conversation_history'] = []
 
@@ -33,12 +29,10 @@ if user_input:
     st.session_state['conversation_history'].append({"role": "user", "content": user_input})
     st.session_state['conversation_history'].append({"role": "assistant", "content": response})
 
-# Step 6: Display Chat History
 for message in st.session_state['conversation_history']:
     with st.container():
         st.write(f"{message['role']}: {message['content']}")
 
-# Step 7: Reset Chat History
 if st.sidebar.button("Reset Chat History"):
     chat_manager.reset_conversation_history()
     st.session_state['conversation_history'] = []

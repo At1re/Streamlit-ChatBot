@@ -1,27 +1,19 @@
 import os
 import openai
-import tiktoken
-import json
-from datetime import datetime
-import streamlit as st
+from dotenv import load_dotenv
 
-DEFAULT_API_KEY = os.environ.get("TOGETHER_API_KEY")
-DEFAULT_BASE_URL = "https://api.together.xyz/v1"
-DEFAULT_MODEL = "meta-llama/Llama-3-8b-chat-hf"
-DEFAULT_TEMPERATURE = 0.7
-DEFAULT_MAX_TOKENS = 512
-DEFAULT_TOKEN_BUDGET = 4096
 class ConversationManager:
     def __init__(self):
+        load_dotenv()  # Load environment variables from a .env file if present
         self.conversation_history = []
         self.persona = "Default"
         self.custom_system_message = None
-        self.api_key = DEFAULT_API_KEY
-        self.base_url = DEFAULT_BASE_URL
-        self.model = DEFAULT_MODEL
-        self.temperature = DEFAULT_TEMPERATURE
-        self.max_tokens = DEFAULT_MAX_TOKENS
-        self.token_budget = DEFAULT_TOKEN_BUDGET
+        self.api_key = os.getenv("OPENAI_API_KEY")  # Use environment variable for API key
+        print(f"API Key: {self.api_key}")  # Add this line to verify the API key is loaded
+        self.model = "text-davinci-003"  # Use "text-davinci-003" for GPT-3.5
+        self.temperature = 0.7
+        self.max_tokens = 512
+        self.token_budget = 4096
 
     def set_persona(self, persona):
         self.persona = persona
@@ -38,26 +30,34 @@ class ConversationManager:
         if total_max_tokens is None:
             total_max_tokens = self.token_budget
 
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
-        }
+        openai.api_key = self.api_key
 
-        data = {
-            "model": self.model,
-            "prompt": user_input,
-            "temperature": temp,
-            "max_tokens": max_tokens
-        }
+        self.conversation_history.append({"role": "user", "content": user_input})
 
-        response = openai.Completion.create(
-            engine=self.model,
-            prompt=user_input,
-            temperature=temp,
-            max_tokens=max_tokens
-        )
+        # Limit history length
+        conversation_context = self.conversation_history[-(total_max_tokens // max_tokens):]
 
-        return response.choices[0].text.strip()
+        # Prepare prompt for OpenAI
+        prompt = self.custom_system_message or f"You are a {self.persona} assistant.\n"
+        for message in conversation_context:
+            prompt += f"{message['role']}: {message['content']}\n"
+        prompt += f"user: {user_input}\nassistant:"
+
+        try:
+            response = openai.Completion.create(
+                engine=self.model,
+                prompt=prompt,
+                temperature=temp,
+                max_tokens=max_tokens,
+                n=1,
+                stop=None
+            )
+            ai_response = response.choices[0].text.strip()
+        except Exception as e:
+            ai_response = f"Error: {str(e)}"
+
+        self.conversation_history.append({"role": "assistant", "content": ai_response})
+        return ai_response
 
     def reset_conversation_history(self):
         self.conversation_history = []
