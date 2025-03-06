@@ -9,3 +9,6 @@ Customizable Settings: Adjust the temperature, max tokens per message, and total
 Persona Selection: Choose from predefined personas (Default, Friendly, Professional) or set a custom system message.
 Conversation History: View the entire conversation history within the chat interface.
 Reset Functionality: Reset the conversation history with a single click.
+
+![Screenshot 2025-03-05 032700](https://github.com/user-attachments/assets/5ef6e605-b56c-4226-9be6-6861d3352bad)
+
